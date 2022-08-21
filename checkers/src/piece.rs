@@ -7,8 +7,8 @@ use derive_more::Not;
 )]
 pub struct Piece(bool);
 
-pub const Pone: Piece = Piece(false);
-pub const King: Piece = Piece(true);
+pub const PONE: Piece = Piece(false);
+pub const KING: Piece = Piece(true);
 
 #[cfg(test)]
 mod tests {
@@ -17,7 +17,7 @@ mod tests {
 
     #[test]
     fn not() {
-        assert_eq!(!Pone, King);
-        assert_eq!(!King, Pone);
+        assert_eq!(!PONE, KING);
+        assert_eq!(!KING, PONE);
     }
 }
