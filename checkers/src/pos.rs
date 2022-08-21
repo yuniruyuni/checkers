@@ -1,11 +1,15 @@
 #[derive(
     Debug,
+    Clone, Copy,
     PartialEq, Eq,
 )]
 pub struct Pos(u8);
 
 impl Pos {
     pub fn new(x: u8, y: u8) -> Pos {
+        debug_assert!(x < 4);
+        debug_assert!(y < 8);
+
         Pos((y<<2) + x)
     }
 

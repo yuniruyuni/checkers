@@ -9,6 +9,7 @@ use derive_more::{
 
 #[derive(
     Debug, Default,
+    Clone, Copy,
     PartialEq, Eq,
     BitAnd, BitAndAssign,
     BitOr, BitOrAssign,

@@ -1,7 +1,8 @@
 use derive_more::Not;
 
 #[derive(
-    Debug,
+    Debug, Default,
+    Clone, Copy,
     PartialEq, Eq,
     Not,
 )]
