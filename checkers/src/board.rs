@@ -19,3 +19,13 @@ use derive_more::{
     Not,
 )]
 pub struct Board(u32);
+
+impl Board {
+    pub const fn new(bits: u32) -> Board {
+        Board(bits)
+    }
+
+    pub const fn empty() -> Board {
+        Board(0)
+    }
+}
