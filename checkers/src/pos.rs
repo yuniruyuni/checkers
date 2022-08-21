@@ -1,3 +1,5 @@
+use crate::board::Board;
+
 #[derive(
     Debug,
     Clone, Copy,
@@ -45,6 +47,25 @@ impl Pos {
     /// gy returns graphical position-y for this Pos.
     pub fn gy(self) -> u8 {
         7 - self.y()
+    }
+
+    /// board returns bitboard's bit for this position.
+    pub fn board(self) -> Board {
+        Board::new(1 << self.0)
+    }
+
+    /// is() checks position of target Board has a bit or not.
+    /// ```
+    /// use checkers::board::Board;
+    /// use checkers::pos::Pos;
+    /// let king = Board::new(0b0000_0000_0000_0000_0010_0000_0000_0000);
+    /// let pos = Pos::new(1, 3);
+    /// assert_eq!(pos.is(king), true, "the board has bit on the pos");
+    /// let pos = Pos::new(2, 3);
+    /// assert_eq!(pos.is(king), false, "the board doesnt have bit on the pos");
+    /// ```
+    pub fn is(self, props: Board) -> bool {
+        (props & self.board()) != Board::empty()
     }
 }
 
