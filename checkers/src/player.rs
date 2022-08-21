@@ -8,8 +8,10 @@ use derive_more::Not;
 )]
 pub struct Player(bool);
 
-pub const RED: Player = Player(false);
-pub const BLK: Player = Player(true);
+impl Player {
+    pub const RED: Player = Player(false);
+    pub const BLK: Player = Player(true);
+}
 
 #[cfg(test)]
 mod tests {
@@ -18,7 +20,7 @@ mod tests {
 
     #[test]
     fn not() {
-        assert_eq!(!RED, BLK);
-        assert_eq!(!BLK, RED);
+        assert_eq!(!Player::RED, Player::BLK);
+        assert_eq!(!Player::BLK, Player::RED);
     }
 }

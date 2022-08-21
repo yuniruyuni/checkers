@@ -7,8 +7,8 @@ use crate::board::Board;
     PartialEq, Eq,
 )]
 pub struct Game {
-    side: Player, // which side is now considering next move.
-    red: Board, // 1st player piece existence.
-    blk: Board, // 2nd player piece existence.
-    king: Board, // the piece is king or pone.
+    pub side: Player, // which side is now considering next move.
+    pub red: Board, // 1st player piece existence.
+    pub blk: Board, // 2nd player piece existence.
+    pub king: Board, // the piece is king or pone.
 }
