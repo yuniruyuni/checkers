@@ -8,6 +8,9 @@ use crate::board::Board;
 pub struct Pos(u8);
 
 impl Pos {
+
+    pub fn raw(v: u8) -> Pos { Pos(v) }
+
     /// new() creates new Pos instance by internal position expression.
     pub fn new(x: u8, y: u8) -> Pos {
         debug_assert!(x < 4);

@@ -87,7 +87,7 @@ impl Latent {
 mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
-    use crate::board::tests::board;
+    use crate::board::testutil::board;
 
     #[test]
     fn apply_direciton() {

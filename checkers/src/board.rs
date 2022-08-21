@@ -7,6 +7,8 @@ use derive_more::{
     Not,
 };
 
+use crate::pos::Pos;
+
 #[derive(
     Debug, Default,
     Clone, Copy,
@@ -28,10 +30,24 @@ impl Board {
     pub const fn empty() -> Board {
         Board(0)
     }
+
+    /// iter() iterate all active positions.
+    pub fn iter(self) -> impl Iterator<Item = Pos> {
+        let mut bits = self.0;
+        let mut shifted = 0u8;
+        std::iter::from_fn(move ||{
+            if bits == 0 { return None; }
+            let shift = bits.trailing_zeros() as u8;
+            bits >>= shift;
+            bits &= !1u32;
+            shifted += shift;
+            Some(Pos::raw(shifted))
+        })
+    }
 }
 
 #[cfg(test)]
-pub mod tests {
+pub mod testutil {
     use super::*;
 
     use unindent::unindent;
@@ -58,5 +74,81 @@ pub mod tests {
         }
 
         board
+    }
+}
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+    use pretty_assertions::assert_eq;
+    use crate::pos::Pos;
+
+    #[test]
+    fn iter_enumerates_specified_positions() {
+        let target = testutil::board(r"
+            _1_0_0_0
+            1_0_0_0_
+            _0_0_0_0
+            0_0_0_0_
+            _0_0_1_0
+            0_0_0_0_
+            _0_1_0_0
+            0_0_0_1_
+        ");
+
+        let actuals = target.iter();
+        let expects = [
+            Pos::raw(0),
+            Pos::raw(6),
+            Pos::raw(13),
+            Pos::raw(27),
+            Pos::raw(31),
+        ];
+
+        for (actual, expect) in actuals.zip(expects) {
+            assert_eq!(actual, expect);
+        }
+    }
+
+    #[test]
+    fn iter_enumerates_final_position() {
+        let target = testutil::board(r"
+            _1_0_0_0
+            0_0_0_0_
+            _0_0_0_0
+            0_0_0_0_
+            _0_0_0_0
+            0_0_0_0_
+            _0_0_0_0
+            0_0_0_0_
+        ");
+
+        let actuals = target.iter();
+        let expects = [ Pos::raw(31) ];
+
+        for (actual, expect) in actuals.zip(expects) {
+            assert_eq!(actual, expect);
+        }
+    }
+
+    #[test]
+    fn iter_enumerates_first_position() {
+        let target = testutil::board(r"
+            _0_0_0_0
+            0_0_0_0_
+            _0_0_0_0
+            0_0_0_0_
+            _0_0_0_0
+            0_0_0_0_
+            _0_0_0_0
+            0_0_0_1_
+        ");
+
+        let actuals = target.iter();
+        let expects = [ Pos::raw(0) ];
+
+        for (actual, expect) in actuals.zip(expects) {
+            assert_eq!(actual, expect);
+        }
     }
 }
