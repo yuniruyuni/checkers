@@ -1,7 +1,8 @@
+use crate::player::Player;
 use crate::board::Board;
+use crate::pos::Pos;
 
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Dir {
     ForwardRight,
     ForwardLeft,
@@ -10,10 +11,46 @@ pub enum Dir {
 }
 
 impl Dir {
+    pub fn valid(self, p: Player, king: bool, pos: Pos) -> bool {
+        self.valid_piece(p, king) && self.valid_pos(pos)
+    }
+
     #[inline(always)]
     pub fn apply(self, target: Board) -> Board {
         let ls = self.latent();
         ls[0].apply(target) | ls[1].apply(target)
+    }
+
+    #[inline(always)]
+    fn valid_piece(self, p: Player, king: bool) -> bool {
+        match (self, p, king) {
+            (_, _, true) => true,
+            (Self::ForwardRight, Player::BLK, _) => true,
+            (Self::ForwardLeft, Player::BLK, _) => true,
+            (Self::BackwardLeft, Player::RED, _) => true,
+            (Self::BackwardRight, Player::RED, _) => true,
+            (_, _, _) => false,
+        }
+    }
+
+    #[inline(always)]
+    fn valid_pos(self, target: Pos) -> bool {
+        let pad = target.y() % 2 == 0;
+        let diff = match (self, pad) {
+            (Self::ForwardRight, true) => (0, 1),
+            (Self::ForwardRight, false) => (-1, 1),
+            (Self::ForwardLeft, true) => (1, 1),
+            (Self::ForwardLeft, false) => (0, 1),
+            (Self::BackwardLeft, true) => (1, -1),
+            (Self::BackwardLeft, false) => (0, -1),
+            (Self::BackwardRight, true) => (0, -1),
+            (Self::BackwardRight, false) => (1, -1),
+        };
+
+        let mx = target.x() as i8 + diff.0;
+        let my = target.y() as i8 + diff.1;
+
+        (0 <= mx && mx < 4) && (0 <= my && my < 8)
     }
 
     #[inline(always)]

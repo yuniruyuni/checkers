@@ -39,13 +39,14 @@ impl CellKind {
 pub struct Cell {
     kind: CellKind,
     king: bool,
+    selectable: bool,
 }
 
 const CELL_SIZE: f32 = 32.0;
 
 impl Cell {
-    pub fn new(kind: CellKind, king: bool) -> Cell {
-        Self{kind, king}
+    pub fn new(kind: CellKind, king: bool, selectable: bool) -> Cell {
+        Self{kind, king, selectable}
     }
 
     pub fn render(&self, ui: &mut Ui) {
@@ -54,7 +55,7 @@ impl Cell {
         );
 
         let stroke = (1.0, Color32::BLACK);
-        let background = if resp.hovered() {
+        let background = if resp.hovered() && self.selectable {
             self.kind.hovering()
         } else {
             Color32::default()

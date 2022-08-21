@@ -4,6 +4,7 @@ use crate::board::Board;
     Debug,
     Clone, Copy,
     PartialEq, Eq,
+    PartialOrd, Ord,
 )]
 pub struct Pos(u8);
 
