@@ -18,4 +18,3 @@ use derive_more::{
     Not,
 )]
 pub struct Board(u32);
-
