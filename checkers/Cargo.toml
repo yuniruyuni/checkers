@@ -8,3 +8,4 @@ derive_more = "*"
 
 [dev-dependencies]
 pretty_assertions = "*"
+unindent = "*"

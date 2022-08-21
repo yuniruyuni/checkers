@@ -182,6 +182,7 @@ version = "0.1.0"
 dependencies = [
  "derive_more",
  "pretty_assertions",
+ "unindent",
 ]
 
 [[package]]
@@ -1557,6 +1558,12 @@ checksum = "854cbdc4f7bc6ae19c820d44abdc3277ac3e1b2b93db20a636825d9322fb60e6"
 dependencies = [
  "tinyvec",
 ]
+
+[[package]]
+name = "unindent"
+version = "0.1.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "58ee9362deb4a96cef4d437d1ad49cffc9b9e92d202b6995674e928ce684f112"
 
 [[package]]
 name = "url"
