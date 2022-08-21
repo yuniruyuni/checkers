@@ -6,6 +6,7 @@
 pub struct Pos(u8);
 
 impl Pos {
+    /// new() creates new Pos instance by internal position expression.
     pub fn new(x: u8, y: u8) -> Pos {
         debug_assert!(x < 4);
         debug_assert!(y < 8);
@@ -13,6 +14,8 @@ impl Pos {
         Pos((y<<2) + x)
     }
 
+    /// graphical() converts graphical position into internal Pos if the position.
+    /// if such position does not exists in internal expression, it will return None.
     pub fn graphical(x: u8, y: u8) -> Option<Pos> {
         if (x + y) % 2 == 0 {
             // it means, unused cell so there are no internal expression.
