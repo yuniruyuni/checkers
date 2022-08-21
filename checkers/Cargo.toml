@@ -1,0 +1,10 @@
+[package]
+name = "checkers"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+derive_more = "*"
+
+[dev-dependencies]
+pretty_assertions = "*"
