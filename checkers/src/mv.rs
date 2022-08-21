@@ -1,7 +1,5 @@
 use crate::pos::Pos;
 use crate::dir::Dir;
-use crate::player::Player;
-use crate::board::Board;
 
 #[derive(
     Debug,
