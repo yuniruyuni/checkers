@@ -3,13 +3,28 @@ use crate::board::Board;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Dir {
-    ForwardLeft,
     ForwardRight,
+    ForwardLeft,
     BackwardLeft,
     BackwardRight,
 }
 
 impl Dir {
+    #[inline(always)]
+    pub fn apply(self, target: Board) -> Board {
+        let ls = self.latent();
+        ls[0].apply(target) | ls[1].apply(target)
+    }
+
+    #[inline(always)]
+    fn latent(self) -> [Latent; 2] {
+        match self {
+            Self::ForwardRight => [Latent::FA, Latent::FC],
+            Self::ForwardLeft => [Latent::FB, Latent::FD],
+            Self::BackwardLeft => [Latent::BA, Latent::BC],
+            Self::BackwardRight => [Latent::BB, Latent::BD],
+        }
+    }
 }
 
 
@@ -73,6 +88,68 @@ mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
     use crate::board::tests::board;
+
+    #[test]
+    fn apply_direciton() {
+        let cases = [
+            (
+                "Forward move moves desired items",
+                Dir::ForwardRight,
+                r"
+                    _0_0_0_0
+                    1_0_0_0_
+                    _0_0_0_0
+                    0_0_0_0_
+                    _0_1_1_0
+                    1_1_1_1_
+                    _1_1_0_0
+                    1_1_1_1_
+                ",
+                r"
+                    _1_0_0_0
+                    0_0_0_0_
+                    _0_0_0_0
+                    0_0_1_1_
+                    _1_1_1_1
+                    0_1_1_0_
+                    _1_1_1_1
+                    0_0_0_0_
+                ",
+            ),
+            (
+                "Backward move moves desired items",
+                Dir::BackwardLeft,
+                r"
+                    _1_0_0_0
+                    0_0_0_0_
+                    _0_0_0_0
+                    0_0_1_1_
+                    _1_1_1_1
+                    0_1_1_0_
+                    _1_1_1_1
+                    0_0_0_0_
+                ",
+                r"
+                    _0_0_0_0
+                    1_0_0_0_
+                    _0_0_0_0
+                    0_0_0_0_
+                    _0_1_1_0
+                    1_1_1_1_
+                    _1_1_0_0
+                    1_1_1_1_
+                ",
+            ),
+        ];
+
+        for (msg, dir, before, after) in cases {
+            let before = board(before);
+            let after = board(after);
+
+            let actual = dir.apply(before);
+            assert_eq!(after, actual, "{}", msg);
+        }
+    }
 
     #[test]
     fn apply_latent_direciton() {
