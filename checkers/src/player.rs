@@ -3,6 +3,7 @@ use derive_more::Not;
 #[derive(
     Debug, Default,
     Clone, Copy,
+    Hash,
     PartialEq, Eq,
     Not,
 )]

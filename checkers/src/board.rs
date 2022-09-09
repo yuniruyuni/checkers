@@ -12,6 +12,7 @@ use crate::pos::Pos;
 #[derive(
     Debug, Default,
     Clone, Copy,
+    Hash,
     PartialEq, Eq,
     BitAnd, BitAndAssign,
     BitOr, BitOrAssign,

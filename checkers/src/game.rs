@@ -6,6 +6,7 @@ use crate::dir::Dir;
 #[derive(
     Debug, Default,
     Clone,
+    Hash,
     PartialEq, Eq,
 )]
 pub struct Game {

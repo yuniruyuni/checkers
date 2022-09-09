@@ -5,6 +5,7 @@ pub mod piece;
 pub mod pos;
 pub mod mv;
 pub mod dir;
+pub mod history;
 
 pub use crate::player::*;
 pub use crate::board::*;
@@ -13,3 +14,4 @@ pub use crate::piece::*;
 pub use crate::pos::*;
 pub use crate::mv::*;
 pub use crate::dir::*;
+pub use crate::history::*;
