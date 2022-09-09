@@ -26,6 +26,7 @@ impl Checkers {
             mode: Mode::SelectingMovePiece,
             game: Game{
                 side: Player::BLK,
+                jumping: None,
                 blk: Board::new(0b0000_0000_0000_0000_0000_0000_1111_1111),
                 red: Board::new(0b1111_1111_1111_0000_0010_0000_0000_0000),
                 king: Board::new(0b0000_1000_0000_0000_0000_0000_0000_0000),

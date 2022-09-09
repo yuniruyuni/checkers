@@ -1,5 +1,6 @@
-use crate::player::{Player, self};
+use crate::player::Player;
 use crate::board::Board;
+use crate::pos::Pos;
 use crate::mv::Move;
 use crate::dir::Dir;
 
@@ -11,6 +12,7 @@ use crate::dir::Dir;
 )]
 pub struct Game {
     pub side: Player, // which side is now considering next move.
+    pub jumping: Option<Pos>, // the piece which is now jumping. it will be None if next hand is normal move.
     pub red: Board, // 1st player piece existence.
     pub blk: Board, // 2nd player piece existence.
     pub king: Board, // the piece is king or pone.
@@ -21,7 +23,12 @@ impl Game {
     pub fn moves(&self) -> impl Iterator<Item = Move> {
         let jumpables = self.jumpables();
         let jumped = jumpables != Board::empty();
-        let movables = if jumped { jumpables } else { self.movables() };
+        let movables = match (self.jumping, jumped) {
+            (Some(pos), true) => jumpables & pos.board(),
+            (Some(_), false) => Board::empty(),
+            (None, true) => jumpables,
+            (None, false) => self.movables(),
+        };
 
         let cloned = self.clone();
 
@@ -39,13 +46,6 @@ impl Game {
             Player::RED => (&mut g.red, &mut g.blk),
         };
 
-        if m.jump {
-            *opp &= !m.mid().board();
-            *king &= !m.mid().board();
-        } else {
-            g.side = !g.side;
-        }
-
         let is_king = m.src.is(*king);
 
         let src_mask = !m.src.board();
@@ -56,6 +56,20 @@ impl Game {
         *slf |= dst_mask;
         if is_king {
             *king |= dst_mask;
+        }
+
+        if m.jump {
+            *opp &= !m.mid().board();
+            *king &= !m.mid().board();
+            g.jumping = Some(m.dst());
+        } else {
+            g.side = !g.side;
+            g.jumping = None;
+        }
+
+        if g.moves().collect::<Vec<Move>>().len() == 0 {
+            g.side = !g.side;
+            g.jumping = None;
         }
 
         g
@@ -185,10 +199,11 @@ pub mod testutil {
     use crate::pos::Pos;
     use crate::player::Player;
 
-    pub fn game(side: Player, s: &str) -> Game {
+    pub fn game(side: Player, jumping: Option<Pos>, s: &str) -> Game {
         let s = unindent(s);
         let mut game = Game::default();
         game.side = side;
+        game.jumping = jumping;
 
         let lines = s.split("\n");
         for (y, line) in lines.enumerate() {
@@ -230,6 +245,7 @@ mod tests {
             (
                 "enumerate black pone's moves",
                 Player::BLK,
+                None,
                 r"
                     _._._._.
                     ._._._._
@@ -248,6 +264,7 @@ mod tests {
             (
                 "enumerate black king's moves",
                 Player::BLK,
+                None,
                 r"
                     _._._._.
                     ._._._._
@@ -268,6 +285,7 @@ mod tests {
             (
                 "enumerate red pone's moves",
                 Player::RED,
+                None,
                 r"
                     _._._._.
                     ._._._._
@@ -286,6 +304,7 @@ mod tests {
             (
                 "enumerate red king's moves",
                 Player::RED,
+                None,
                 r"
                     _._._._.
                     ._._._._
@@ -306,6 +325,7 @@ mod tests {
             (
                 "enumerate king's moves on bottom",
                 Player::BLK,
+                None,
                 r"
                     _._._._.
                     ._._._._
@@ -324,6 +344,7 @@ mod tests {
             (
                 "enumerate king's moves on most right",
                 Player::BLK,
+                None,
                 r"
                     _._._._.
                     ._._._._
@@ -342,6 +363,7 @@ mod tests {
             (
                 "enumerate king's moves on most left",
                 Player::BLK,
+                None,
                 r"
                     _._._._.
                     ._._._._
@@ -360,6 +382,7 @@ mod tests {
             (
                 "enumerate king's moves on most top right",
                 Player::BLK,
+                None,
                 r"
                     _._._._B
                     ._._._._
@@ -377,6 +400,7 @@ mod tests {
             (
                 "enumerate jump over a enemy",
                 Player::BLK,
+                None,
                 r"
                     _._._._.
                     ._._._._
@@ -394,6 +418,7 @@ mod tests {
             (
                 "enumerate jump over many enemies",
                 Player::BLK,
+                None,
                 r"
                     _._._._.
                     ._._._._
@@ -414,6 +439,7 @@ mod tests {
             (
                 "don't enumerate jump overun",
                 Player::BLK,
+                None,
                 r"
                     _._._._.
                     ._._._._
@@ -432,6 +458,7 @@ mod tests {
             (
                 "enumerate all movable piece's moves",
                 Player::BLK,
+                None,
                 r"
                     _._._._.
                     ._._._._
@@ -454,6 +481,7 @@ mod tests {
             (
                 "avoid move for occupied cell",
                 Player::BLK,
+                None,
                 r"
                     _._._._.
                     ._._._._
@@ -470,10 +498,26 @@ mod tests {
                     Move{src: Pos::new(2, 4), dir: Dir::ForwardLeft, jump: false, },
                 ],
             ),
+            (
+                "jumping piece cannot continue jump",
+                Player::BLK,
+                Some(Pos::new(2, 3)),
+                r"
+                    _._._._.
+                    ._._._._
+                    _._b_._.
+                    ._._._._
+                    _._b_._.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                ",
+                vec![],
+            ),
         ];
 
-        for (msg, player, game, mut expects) in cases {
-            let game = testutil::game(player, game);
+        for (msg, player, jumping, game, mut expects) in cases {
+            let game = testutil::game(player, jumping, game);
 
             let mut actuals: Vec<Move> = game.moves().collect();
             expects.sort();
@@ -490,8 +534,9 @@ mod tests {
         let cases = [
             (
                 "Apply ForwardRight move",
-                Move{src: Pos::new(2, 1), dir: Dir::ForwardRight, jump: false, },
+                Move{src: Pos::new(2, 1), dir: Dir::ForwardRight, jump: false},
                 Player::BLK,
+                None,
                 r"
                     _._._._.
                     ._._B_R_
@@ -503,6 +548,7 @@ mod tests {
                     ._._._._
                 ",
                 Player::RED,
+                None,
                 r"
                     _._._._.
                     ._._B_R_
@@ -515,25 +561,27 @@ mod tests {
                 ",
             ),
             (
-                "Apply ForwardRight jump move",
+                "Apply ForwardRight jump move and continue play for black",
                 Move{src: Pos::new(2, 1), dir: Dir::ForwardRight, jump: true, },
                 Player::BLK,
+                None,
                 r"
                     _._._._.
                     ._B_R_._
                     _._._._.
-                    ._._._._
+                    ._._r_._
                     _._r_._.
                     ._._r_._
                     _._b_._.
                     ._._._._
                 ",
                 Player::BLK,
+                Some(Pos::new(1, 3)),
                 r"
                     _._._._.
                     ._B_R_._
                     _._._._.
-                    ._._._._
+                    ._._r_._
                     _._r_b_.
                     ._._._._
                     _._._._.
@@ -544,6 +592,7 @@ mod tests {
                 "Apply BackwardRight jump move",
                 Move{src: Pos::new(2, 1), dir: Dir::BackwardRight, jump: false, },
                 Player::BLK,
+                None,
                 r"
                     _._._._.
                     ._._._._
@@ -554,7 +603,8 @@ mod tests {
                     _._b_._.
                     ._._._._
                 ",
-                Player::RED,
+                Player::BLK,
+                None,
                 r"
                     _._._._.
                     ._._._._
@@ -567,13 +617,14 @@ mod tests {
                 ",
             ),
             (
-                "Apply ForwardRight move for king",
+                "Apply ForwardRight move for king for black",
                 Move{src: Pos::new(2, 1), dir: Dir::ForwardRight, jump: false, },
                 Player::BLK,
+                None,
                 r"
                     _._._._.
                     ._._._._
-                    _._._._.
+                    _._r_._.
                     ._._._._
                     _._._._.
                     ._._._._
@@ -581,10 +632,11 @@ mod tests {
                     ._._._._
                 ",
                 Player::RED,
+                None,
                 r"
                     _._._._.
                     ._._._._
-                    _._._._.
+                    _._r_._.
                     ._._._._
                     _._._._.
                     ._._B_._
@@ -593,38 +645,41 @@ mod tests {
                 ",
             ),
             (
-                "Apply ForwardRight jump move for king",
+                "Apply ForwardRight move for king for red",
                 Move{src: Pos::new(2, 1), dir: Dir::BackwardRight, jump: false, },
                 Player::RED,
+                None,
                 r"
                     _._._._.
                     ._._._._
-                    _._._._.
+                    _._b_._.
                     ._._._._
                     _._._._.
                     ._._._._
-                    _._r_._.
+                    _._R_._.
                     ._._._._
                 ",
                 Player::BLK,
+                None,
                 r"
                     _._._._.
                     ._._._._
-                    _._._._.
+                    _._b_._.
                     ._._._._
                     _._._._.
                     ._._._._
                     _._._._.
-                    ._._r_._
+                    ._._R_._
                 ",
             ),
             (
                 "Apply ForwardRight move for king",
                 Move{src: Pos::new(2, 1), dir: Dir::ForwardRight, jump: false, },
                 Player::RED,
+                None,
                 r"
                     _._._._.
-                    ._._._._
+                    ._._._b_
                     _._._._.
                     ._._._._
                     _._._._.
@@ -633,9 +688,10 @@ mod tests {
                     ._._._._
                 ",
                 Player::BLK,
+                None,
                 r"
                     _._._._.
-                    ._._._._
+                    ._._._b_
                     _._._._.
                     ._._._._
                     _._._._.
@@ -645,9 +701,38 @@ mod tests {
                 ",
             ),
             (
-                "Apply ForwardRight jump move",
+                "Apply ForwardRight jump move and continue play for red",
                 Move{src: Pos::new(2, 1), dir: Dir::ForwardRight, jump: true, },
                 Player::RED,
+                None,
+                r"
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._b_._
+                    _._._._.
+                    ._._b_._
+                    _._R_._.
+                    ._._._._
+                ",
+                Player::RED,
+                Some(Pos::new(1, 3)),
+                r"
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._b_._
+                    _._._R_.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                ",
+            ),
+            (
+                "Apply ForwardRight jump move without next jumpable move",
+                Move{src: Pos::new(2, 1), dir: Dir::ForwardRight, jump: true, },
+                Player::RED,
+                None,
                 r"
                     _._._._.
                     ._._._._
@@ -658,7 +743,8 @@ mod tests {
                     _._R_._.
                     ._._._._
                 ",
-                Player::RED,
+                Player::BLK,
+                None,
                 r"
                     _._._._.
                     ._._._._
@@ -672,9 +758,14 @@ mod tests {
             ),
         ];
 
-        for (msg, m, before_player, before, after_player, after) in cases {
-            let before = testutil::game(before_player, before);
-            let expected = testutil::game(after_player, after);
+        for (
+                msg,
+                m,
+                before_player, before_jumping, before,
+                after_player, after_jumping, after,
+        ) in cases {
+            let before = testutil::game(before_player, before_jumping, before);
+            let expected = testutil::game(after_player, after_jumping, after);
             let actual = before.apply(&m);
 
             assert_eq!(expected, actual, "{}", msg);

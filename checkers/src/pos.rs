@@ -3,6 +3,7 @@ use crate::board::Board;
 
 #[derive(
     Clone, Copy,
+    Hash,
     PartialEq, Eq,
     PartialOrd, Ord,
 )]

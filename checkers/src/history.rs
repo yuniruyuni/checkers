@@ -48,6 +48,7 @@ mod tests {
     fn push_pop_identity() {
         let g = Game{
             side: Player::BLK,
+            jumping: None,
             red: Board::new(0b0000_0001_0000_0000_0001_0010_0000_0100),
             blk: Board::new(0b0100_0000_0000_0010_0000_0000_0000_0010),
             king: Board::new(0b0000_0001_0000_0000_0001_0000_0100_0000),
@@ -65,12 +66,14 @@ mod tests {
     fn pushed_contains_identity() {
         let g1 = Game{
             side: Player::BLK,
+            jumping: None,
             red: Board::new(0b0000_0001_0000_0000_0001_0010_0000_0100),
             blk: Board::new(0b0100_0000_0000_0010_0000_0000_0000_0010),
             king: Board::new(0b0000_0001_0000_0000_0001_0000_0100_0000),
         };
         let g2 = Game{
             side: Player::BLK,
+            jumping: None,
             red: Board::new(0b0100_0000_0000_0010_0000_0000_0000_0010),
             blk: Board::new(0b0000_0001_0000_0000_0001_0010_0000_0100),
             king: Board::new(0b0000_0001_0000_0000_0001_0000_0100_0000),
