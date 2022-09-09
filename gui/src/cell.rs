@@ -1,6 +1,6 @@
 // use checkers::{Pos, Board, Player};
 
-use egui::{Ui, Color32, vec2, Sense, Shape, pos2, Pos2};
+use egui::{Ui, Color32, vec2, Sense, Shape, pos2, Pos2, Response};
 
 #[derive(Debug, Clone, Copy, Default)]
 pub enum CellKind {
@@ -12,6 +12,14 @@ pub enum CellKind {
 
 impl CellKind {
     fn hovering(self) -> Color32 {
+        match self {
+            CellKind::Empty => Color32::LIGHT_GREEN,
+            CellKind::Red => Color32::LIGHT_RED,
+            CellKind::Blk => Color32::LIGHT_RED,
+        }
+    }
+
+    fn selected(self) -> Color32 {
         match self {
             CellKind::Empty => Color32::LIGHT_GREEN,
             CellKind::Red => Color32::LIGHT_RED,
@@ -39,26 +47,28 @@ impl CellKind {
 pub struct Cell {
     kind: CellKind,
     king: bool,
+    selected: bool,
     selectable: bool,
 }
 
 const CELL_SIZE: f32 = 32.0;
 
 impl Cell {
-    pub fn new(kind: CellKind, king: bool, selectable: bool) -> Cell {
-        Self{kind, king, selectable}
+    pub fn new(kind: CellKind, king: bool, selected: bool, selectable: bool) -> Cell {
+        Self{kind, king, selected, selectable}
     }
 
-    pub fn render(&self, ui: &mut Ui) {
+    pub fn render(&self, ui: &mut Ui) -> Response {
         let (resp, painter) = ui.allocate_painter(
             vec2(CELL_SIZE, CELL_SIZE), Sense::click(),
         );
 
         let stroke = (1.0, Color32::BLACK);
-        let background = if resp.hovered() && self.selectable {
-            self.kind.hovering()
-        } else {
-            Color32::default()
+
+        let background = match (resp.hovered(), self.selectable, self.selected) {
+            (true, true, _) => self.kind.hovering(),
+            (_, _, true) => self.kind.selected(),
+            (_, _, _) => Color32::default(),
         };
         painter.rect(resp.rect, 0.0, background, stroke);
 
@@ -70,12 +80,14 @@ impl Cell {
         );
 
         if self.king {
-        painter.add(Shape::convex_polygon(
-            star(resp.rect.center(), 7.0, 12.0).collect(),
-            Color32::default(),
-            (1.0, self.kind.shape_edge()),
-        ));
+            painter.add(Shape::convex_polygon(
+                star(resp.rect.center(), 7.0, 12.0).collect(),
+                Color32::default(),
+                (1.0, self.kind.shape_edge()),
+            ));
         }
+
+        resp
     }
 }
 
