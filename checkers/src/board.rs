@@ -82,6 +82,7 @@ pub mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
     use crate::pos::Pos;
+    use std::iter::zip;
 
     #[test]
     fn iter_enumerates_specified_positions() {
@@ -105,7 +106,7 @@ pub mod tests {
             Pos::raw(31),
         ];
 
-        for (actual, expect) in actuals.zip(expects) {
+        for (actual, expect) in zip(actuals, expects) {
             assert_eq!(actual, expect);
         }
     }
@@ -126,7 +127,7 @@ pub mod tests {
         let actuals = target.actives();
         let expects = [ Pos::raw(31) ];
 
-        for (actual, expect) in actuals.zip(expects) {
+        for (actual, expect) in zip(actuals, expects) {
             assert_eq!(actual, expect);
         }
     }
@@ -147,7 +148,7 @@ pub mod tests {
         let actuals = target.actives();
         let expects = [ Pos::raw(0) ];
 
-        for (actual, expect) in actuals.zip(expects) {
+        for (actual, expect) in zip(actuals, expects) {
             assert_eq!(actual, expect);
         }
     }
