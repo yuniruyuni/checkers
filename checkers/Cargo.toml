@@ -9,3 +9,8 @@ derive_more = "*"
 [dev-dependencies]
 pretty_assertions = "*"
 unindent = "*"
+criterion = "*"
+
+[[bench]]
+name = "moves"
+harness = false
