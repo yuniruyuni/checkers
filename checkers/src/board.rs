@@ -31,8 +31,8 @@ impl Board {
         Board(0)
     }
 
-    /// iter() iterate all active positions.
-    pub fn iter(self) -> impl Iterator<Item = Pos> {
+    /// actives() iterate all active positions.
+    pub fn actives(self) -> impl Iterator<Item = Pos> {
         let mut bits = self.0;
         let mut shifted = 0u8;
         std::iter::from_fn(move ||{
@@ -96,7 +96,7 @@ pub mod tests {
             0_0_0_1_
         ");
 
-        let actuals = target.iter();
+        let actuals = target.actives();
         let expects = [
             Pos::raw(0),
             Pos::raw(6),
@@ -123,7 +123,7 @@ pub mod tests {
             0_0_0_0_
         ");
 
-        let actuals = target.iter();
+        let actuals = target.actives();
         let expects = [ Pos::raw(31) ];
 
         for (actual, expect) in actuals.zip(expects) {
@@ -144,7 +144,7 @@ pub mod tests {
             0_0_0_1_
         ");
 
-        let actuals = target.iter();
+        let actuals = target.actives();
         let expects = [ Pos::raw(0) ];
 
         for (actual, expect) in actuals.zip(expects) {

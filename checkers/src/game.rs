@@ -25,7 +25,7 @@ impl Game {
         let cloned = self.clone();
 
         movables
-            .iter()
+            .actives()
             .flat_map(move |p| Move::cands(p, jumped))
             .filter(move |m| cloned.valid(m))
     }

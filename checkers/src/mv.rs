@@ -31,7 +31,7 @@ impl Move {
             moved = self.dir.apply(moved);
         }
         // it must has a position if this move is valid.
-        let v: Vec<Pos> = moved.iter().collect();
+        let v: Vec<Pos> = moved.actives().collect();
         v[0]
     }
 }
