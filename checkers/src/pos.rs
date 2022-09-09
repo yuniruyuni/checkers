@@ -27,8 +27,8 @@ impl Pos {
             return None
         }
 
-        let iy = 7 - y;
         let ix = (7-x) / 2;
+        let iy = 7 - y;
         Some(Pos::new(ix, iy))
     }
 
