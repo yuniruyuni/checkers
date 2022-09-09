@@ -34,4 +34,10 @@ impl Move {
         let v: Vec<Pos> = moved.actives().collect();
         v[0]
     }
+
+    /// mid() returns middle position(=the cell contains a peace captured by jump) of jump move.
+    pub fn mid(&self) -> Pos {
+        let v: Vec<Pos> = self.dir.apply(self.src.board()).actives().collect();
+        v[0]
+    }
 }

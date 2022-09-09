@@ -1,4 +1,4 @@
-use crate::player::Player;
+use crate::player::{Player, self};
 use crate::board::Board;
 use crate::mv::Move;
 use crate::dir::Dir;
@@ -29,6 +29,36 @@ impl Game {
             .actives()
             .flat_map(move |p| Move::cands(p, jumped))
             .filter(move |m| cloned.valid(m))
+    }
+
+    pub fn apply(&self, m: &Move) -> Game {
+        let mut g = self.clone();
+        let king = &mut g.king;
+        let (slf, opp) = match self.side {
+            Player::BLK => (&mut g.blk, &mut g.red),
+            Player::RED => (&mut g.red, &mut g.blk),
+        };
+
+        if m.jump {
+            *opp &= !m.mid().board();
+            *king &= !m.mid().board();
+        } else {
+            g.side = !g.side;
+        }
+
+        let is_king = m.src.is(*king);
+
+        let src_mask = !m.src.board();
+        *slf &= src_mask;
+        *king &= src_mask;
+
+        let dst_mask = m.dst().board();
+        *slf |= dst_mask;
+        if is_king {
+            *king |= dst_mask;
+        }
+
+        g
     }
 
     fn valid(&self, m: &Move) -> bool {
@@ -454,4 +484,202 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn apply_moves_correct_piece() {
+        let cases = [
+            (
+                "Apply ForwardRight move",
+                Move{src: Pos::new(2, 1), dir: Dir::ForwardRight, jump: false, },
+                Player::BLK,
+                r"
+                    _._._._.
+                    ._._B_R_
+                    _b_._._.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                    _._b_._.
+                    ._._._._
+                ",
+                Player::RED,
+                r"
+                    _._._._.
+                    ._._B_R_
+                    _b_._._.
+                    ._._._._
+                    _._._._.
+                    ._._b_._
+                    _._._._.
+                    ._._._._
+                ",
+            ),
+            (
+                "Apply ForwardRight jump move",
+                Move{src: Pos::new(2, 1), dir: Dir::ForwardRight, jump: true, },
+                Player::BLK,
+                r"
+                    _._._._.
+                    ._B_R_._
+                    _._._._.
+                    ._._._._
+                    _._r_._.
+                    ._._r_._
+                    _._b_._.
+                    ._._._._
+                ",
+                Player::BLK,
+                r"
+                    _._._._.
+                    ._B_R_._
+                    _._._._.
+                    ._._._._
+                    _._r_b_.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                ",
+            ),
+            (
+                "Apply BackwardRight jump move",
+                Move{src: Pos::new(2, 1), dir: Dir::BackwardRight, jump: false, },
+                Player::BLK,
+                r"
+                    _._._._.
+                    ._._._._
+                    _b_._._.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                    _._b_._.
+                    ._._._._
+                ",
+                Player::RED,
+                r"
+                    _._._._.
+                    ._._._._
+                    _b_._._.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._b_._
+                ",
+            ),
+            (
+                "Apply ForwardRight move for king",
+                Move{src: Pos::new(2, 1), dir: Dir::ForwardRight, jump: false, },
+                Player::BLK,
+                r"
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                    _._B_._.
+                    ._._._._
+                ",
+                Player::RED,
+                r"
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._B_._
+                    _._._._.
+                    ._._._._
+                ",
+            ),
+            (
+                "Apply ForwardRight jump move for king",
+                Move{src: Pos::new(2, 1), dir: Dir::BackwardRight, jump: false, },
+                Player::RED,
+                r"
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                    _._r_._.
+                    ._._._._
+                ",
+                Player::BLK,
+                r"
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._r_._
+                ",
+            ),
+            (
+                "Apply ForwardRight move for king",
+                Move{src: Pos::new(2, 1), dir: Dir::ForwardRight, jump: false, },
+                Player::RED,
+                r"
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                    _._R_._.
+                    ._._._._
+                ",
+                Player::BLK,
+                r"
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._R_._
+                    _._._._.
+                    ._._._._
+                ",
+            ),
+            (
+                "Apply ForwardRight jump move",
+                Move{src: Pos::new(2, 1), dir: Dir::ForwardRight, jump: true, },
+                Player::RED,
+                r"
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._b_._
+                    _._R_._.
+                    ._._._._
+                ",
+                Player::RED,
+                r"
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                    _._._R_.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                ",
+            ),
+        ];
+
+        for (msg, m, before_player, before, after_player, after) in cases {
+            let before = testutil::game(before_player, before);
+            let expected = testutil::game(after_player, after);
+            let actual = before.apply(&m);
+
+            assert_eq!(expected, actual, "{}", msg);
+        }
+    }
+
+
 }
