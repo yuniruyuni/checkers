@@ -1,7 +1,7 @@
+use std::fmt::{Debug, Result, Formatter};
 use crate::board::Board;
 
 #[derive(
-    Debug,
     Clone, Copy,
     PartialEq, Eq,
     PartialOrd, Ord,
@@ -9,7 +9,6 @@ use crate::board::Board;
 pub struct Pos(u8);
 
 impl Pos {
-
     pub fn raw(v: u8) -> Pos { Pos(v) }
 
     /// new() creates new Pos instance by internal position expression.
@@ -73,6 +72,11 @@ impl Pos {
     }
 }
 
+impl Debug for Pos {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        f.debug_tuple("Pos").field(&self.x()).field(&self.y()).finish()
+    }
+}
 
 #[cfg(test)]
 mod tests {
