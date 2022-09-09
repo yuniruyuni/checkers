@@ -79,6 +79,11 @@ impl Cell {
     }
 }
 
+/// star() returns star geometry's position values.
+/// ## parameters
+/// `c`: center position of the star geometry.
+/// `ir`: internal circle radius intented for star inner edge.
+/// `or`: outer circle radius intented for star outer edge.
 fn star(c: Pos2, ir: f32, er: f32) -> impl Iterator<Item = Pos2> {
     let n = 5 * 2;
     let frac_n = 1.0 / (n as f32);
