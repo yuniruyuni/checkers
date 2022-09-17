@@ -66,10 +66,10 @@ impl Checkers {
                 match moves.iter().find(|m| m.src == src && m.dst() == pos) {
                     Some(m) => {
                         self.game = self.game.apply(m);
+                        self.mode = Mode::SelectingMovePiece;
                     },
                     None => (),
                 }
-                self.mode = Mode::SelectingMovePiece;
             },
             (_, _, _) => (),
         }
