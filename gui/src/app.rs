@@ -79,7 +79,7 @@ impl Checkers {
         CentralPanel::default().show(ctx, |ui| {
             if ui.input().pointer.secondary_clicked() {
                 self.mode = Mode::SelectingMovePiece;
-            };
+            }
             let moves: Vec<Move> = self.game.moves().collect();
             for y in 0..Self::ROWS {
                 ui.columns(Self::COLUMNS, |columns| {
