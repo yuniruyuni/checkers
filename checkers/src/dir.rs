@@ -1,5 +1,5 @@
-use crate::player::Player;
 use crate::board::Board;
+use crate::player::Player;
 use crate::pos::Pos;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -64,11 +64,16 @@ impl Dir {
     }
 }
 
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Latent {
-    FA, FB, FC, FD,
-    BA, BB, BC, BD,
+    FA,
+    FB,
+    FC,
+    FD,
+    BA,
+    BB,
+    BC,
+    BD,
 }
 
 impl Latent {
@@ -88,7 +93,11 @@ impl Latent {
     pub fn apply(self, target: Board) -> Board {
         let masked = target & self.mask();
         let diff = self.diff();
-        if 0 <= diff { masked << diff } else { masked >> -diff }
+        if 0 <= diff {
+            masked << diff
+        } else {
+            masked >> -diff
+        }
     }
 
     #[inline(always)]
@@ -123,8 +132,8 @@ impl Latent {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pretty_assertions::assert_eq;
     use crate::board::testutil::board;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn apply_direciton() {

@@ -1,23 +1,20 @@
-use std::fmt::{Debug, Result, Formatter};
 use crate::board::Board;
+use std::fmt::{Debug, Formatter, Result};
 
-#[derive(
-    Clone, Copy,
-    Hash,
-    PartialEq, Eq,
-    PartialOrd, Ord,
-)]
+#[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Pos(u8);
 
 impl Pos {
-    pub fn raw(v: u8) -> Pos { Pos(v) }
+    pub fn raw(v: u8) -> Pos {
+        Pos(v)
+    }
 
     /// new() creates new Pos instance by internal position expression.
     pub fn new(x: u8, y: u8) -> Pos {
         debug_assert!(x < 4);
         debug_assert!(y < 8);
 
-        Pos((y<<2) + x)
+        Pos((y << 2) + x)
     }
 
     /// graphical() converts graphical position into internal Pos if the position.
@@ -25,10 +22,10 @@ impl Pos {
     pub fn graphical(x: u8, y: u8) -> Option<Pos> {
         if (x + y) % 2 == 0 {
             // it means, unused cell so there are no internal expression.
-            return None
+            return None;
         }
 
-        let ix = (7-x) / 2;
+        let ix = (7 - x) / 2;
         let iy = 7 - y;
         Some(Pos::new(ix, iy))
     }
@@ -45,7 +42,7 @@ impl Pos {
 
     /// gx returns graphical position-x for this Pos.
     pub fn gx(self) -> u8 {
-        7 - ((self.x() << 1) + (1-(self.y() % 2)))
+        7 - ((self.x() << 1) + (1 - (self.y() % 2)))
     }
 
     /// gy returns graphical position-y for this Pos.
@@ -75,7 +72,10 @@ impl Pos {
 
 impl Debug for Pos {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        f.debug_tuple("Pos").field(&self.x()).field(&self.y()).finish()
+        f.debug_tuple("Pos")
+            .field(&self.x())
+            .field(&self.y())
+            .finish()
     }
 }
 

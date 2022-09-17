@@ -1,12 +1,6 @@
 use derive_more::Not;
 
-#[derive(
-    Debug, Default,
-    Clone, Copy,
-    Hash,
-    PartialEq, Eq,
-    Not,
-)]
+#[derive(Debug, Default, Clone, Copy, Hash, PartialEq, Eq, Not)]
 pub struct Player(bool);
 
 impl Player {

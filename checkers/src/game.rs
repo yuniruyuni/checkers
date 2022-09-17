@@ -1,21 +1,16 @@
-use crate::player::Player;
 use crate::board::Board;
-use crate::pos::Pos;
-use crate::mv::Move;
 use crate::dir::Dir;
+use crate::mv::Move;
+use crate::player::Player;
+use crate::pos::Pos;
 
-#[derive(
-    Debug, Default,
-    Clone,
-    Hash,
-    PartialEq, Eq,
-)]
+#[derive(Debug, Default, Clone, Hash, PartialEq, Eq)]
 pub struct Game {
-    pub side: Player, // which side is now considering next move.
+    pub side: Player,         // which side is now considering next move.
     pub jumping: Option<Pos>, // the piece which is now jumping. it will be None if next hand is normal move.
-    pub red: Board, // 1st player piece existence.
-    pub blk: Board, // 2nd player piece existence.
-    pub king: Board, // the piece is king or pone.
+    pub red: Board,           // 1st player piece existence.
+    pub blk: Board,           // 2nd player piece existence.
+    pub king: Board,          // the piece is king or pone.
 }
 
 impl Game {
@@ -38,6 +33,7 @@ impl Game {
             .filter(move |m| cloned.valid(m))
     }
 
+    /// PROMOTION_MASK is mask for pone's promotion.
     const PROMOTION_MASK: Board = Board::new(0b1111_0000_0000_0000_0000_0000_0000_1111);
 
     pub fn apply(&self, m: &Move) -> Game {
@@ -55,7 +51,7 @@ impl Game {
         *king &= src_mask;
 
         let dst_mask = m.dst().board();
-        let is_promotion= (dst_mask & Self::PROMOTION_MASK) != Board::empty();
+        let is_promotion = (dst_mask & Self::PROMOTION_MASK) != Board::empty();
 
         *slf |= dst_mask;
         if is_king || is_promotion {
@@ -79,6 +75,16 @@ impl Game {
         g
     }
 
+    /// winner() returns which player is winner.
+    /// if there are no winner, it retruns None.
+    pub fn winner(&self) -> Option<Player> {
+        match () {
+            _ if self.blk == Board::empty() => Some(Player::RED),
+            _ if self.red == Board::empty() => Some(Player::BLK),
+            _ => None,
+        }
+    }
+
     fn valid(&self, m: &Move) -> bool {
         let king = m.src.is(self.king);
         let dir_ok = m.dir.valid(self.side, king, m.src);
@@ -86,7 +92,11 @@ impl Game {
         let board = m.src.board();
 
         let gap = self.gap();
-        let op = if self.side == Player::BLK { self.red } else { self.blk };
+        let op = if self.side == Player::BLK {
+            self.red
+        } else {
+            self.blk
+        };
 
         let gap_ok = if m.jump {
             let first = m.dir.apply(board);
@@ -199,9 +209,9 @@ impl Game {
 pub mod testutil {
     use super::*;
 
-    use unindent::unindent;
-    use crate::pos::Pos;
     use crate::player::Player;
+    use crate::pos::Pos;
+    use unindent::unindent;
 
     pub fn game(side: Player, jumping: Option<Pos>, s: &str) -> Game {
         let s = unindent(s);
@@ -212,14 +222,12 @@ pub mod testutil {
         let lines = s.split("\n");
         for (y, line) in lines.enumerate() {
             for (x, c) in line.chars().enumerate() {
-                let pos= Pos::graphical(x as u8, y as u8).and_then(|pos| {
-                    match c {
-                        'b' => Some((Player::BLK, false, pos)),
-                        'B' => Some((Player::BLK, true, pos)),
-                        'r' => Some((Player::RED, false, pos)),
-                        'R' => Some((Player::RED, true, pos)),
-                        _ => None,
-                    }
+                let pos = Pos::graphical(x as u8, y as u8).and_then(|pos| match c {
+                    'b' => Some((Player::BLK, false, pos)),
+                    'B' => Some((Player::BLK, true, pos)),
+                    'r' => Some((Player::RED, false, pos)),
+                    'R' => Some((Player::RED, true, pos)),
+                    _ => None,
                 });
                 match pos {
                     Some((Player::BLK, _, pos)) => game.blk |= pos.board(),
@@ -240,8 +248,8 @@ pub mod testutil {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pretty_assertions::assert_eq;
     use crate::pos::Pos;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn moves_enumerate_all_move_candidates() {
@@ -261,8 +269,16 @@ mod tests {
                     ._._._._
                 ",
                 vec![
-                    Move{src: Pos::new(1, 4), dir: Dir::ForwardRight, jump: false, },
-                    Move{src: Pos::new(1, 4), dir: Dir::ForwardLeft, jump: false, },
+                    Move {
+                        src: Pos::new(1, 4),
+                        dir: Dir::ForwardRight,
+                        jump: false,
+                    },
+                    Move {
+                        src: Pos::new(1, 4),
+                        dir: Dir::ForwardLeft,
+                        jump: false,
+                    },
                 ],
             ),
             (
@@ -280,10 +296,26 @@ mod tests {
                     ._._._._
                 ",
                 vec![
-                    Move{src: Pos::new(1, 4), dir: Dir::ForwardRight, jump: false, },
-                    Move{src: Pos::new(1, 4), dir: Dir::ForwardLeft, jump: false, },
-                    Move{src: Pos::new(1, 4), dir: Dir::BackwardLeft, jump: false, },
-                    Move{src: Pos::new(1, 4), dir: Dir::BackwardRight, jump: false, },
+                    Move {
+                        src: Pos::new(1, 4),
+                        dir: Dir::ForwardRight,
+                        jump: false,
+                    },
+                    Move {
+                        src: Pos::new(1, 4),
+                        dir: Dir::ForwardLeft,
+                        jump: false,
+                    },
+                    Move {
+                        src: Pos::new(1, 4),
+                        dir: Dir::BackwardLeft,
+                        jump: false,
+                    },
+                    Move {
+                        src: Pos::new(1, 4),
+                        dir: Dir::BackwardRight,
+                        jump: false,
+                    },
                 ],
             ),
             (
@@ -301,8 +333,16 @@ mod tests {
                     ._._._._
                 ",
                 vec![
-                    Move{src: Pos::new(1, 4), dir: Dir::BackwardLeft, jump: false, },
-                    Move{src: Pos::new(1, 4), dir: Dir::BackwardRight, jump: false, },
+                    Move {
+                        src: Pos::new(1, 4),
+                        dir: Dir::BackwardLeft,
+                        jump: false,
+                    },
+                    Move {
+                        src: Pos::new(1, 4),
+                        dir: Dir::BackwardRight,
+                        jump: false,
+                    },
                 ],
             ),
             (
@@ -320,10 +360,26 @@ mod tests {
                     ._._._._
                 ",
                 vec![
-                    Move{src: Pos::new(1, 4), dir: Dir::ForwardRight, jump: false, },
-                    Move{src: Pos::new(1, 4), dir: Dir::ForwardLeft, jump: false, },
-                    Move{src: Pos::new(1, 4), dir: Dir::BackwardLeft, jump: false, },
-                    Move{src: Pos::new(1, 4), dir: Dir::BackwardRight, jump: false, },
+                    Move {
+                        src: Pos::new(1, 4),
+                        dir: Dir::ForwardRight,
+                        jump: false,
+                    },
+                    Move {
+                        src: Pos::new(1, 4),
+                        dir: Dir::ForwardLeft,
+                        jump: false,
+                    },
+                    Move {
+                        src: Pos::new(1, 4),
+                        dir: Dir::BackwardLeft,
+                        jump: false,
+                    },
+                    Move {
+                        src: Pos::new(1, 4),
+                        dir: Dir::BackwardRight,
+                        jump: false,
+                    },
                 ],
             ),
             (
@@ -341,8 +397,16 @@ mod tests {
                     ._._._B_
                 ",
                 vec![
-                    Move{src: Pos::new(0, 0), dir: Dir::ForwardRight, jump: false, },
-                    Move{src: Pos::new(0, 0), dir: Dir::ForwardLeft, jump: false, },
+                    Move {
+                        src: Pos::new(0, 0),
+                        dir: Dir::ForwardRight,
+                        jump: false,
+                    },
+                    Move {
+                        src: Pos::new(0, 0),
+                        dir: Dir::ForwardLeft,
+                        jump: false,
+                    },
                 ],
             ),
             (
@@ -360,8 +424,16 @@ mod tests {
                     ._._._._
                 ",
                 vec![
-                    Move{src: Pos::new(0, 1), dir: Dir::ForwardLeft, jump: false, },
-                    Move{src: Pos::new(0, 1), dir: Dir::BackwardLeft, jump: false, },
+                    Move {
+                        src: Pos::new(0, 1),
+                        dir: Dir::ForwardLeft,
+                        jump: false,
+                    },
+                    Move {
+                        src: Pos::new(0, 1),
+                        dir: Dir::BackwardLeft,
+                        jump: false,
+                    },
                 ],
             ),
             (
@@ -379,8 +451,16 @@ mod tests {
                     ._._._._
                 ",
                 vec![
-                    Move{src: Pos::new(3, 2), dir: Dir::ForwardRight, jump: false, },
-                    Move{src: Pos::new(3, 2), dir: Dir::BackwardRight, jump: false, },
+                    Move {
+                        src: Pos::new(3, 2),
+                        dir: Dir::ForwardRight,
+                        jump: false,
+                    },
+                    Move {
+                        src: Pos::new(3, 2),
+                        dir: Dir::BackwardRight,
+                        jump: false,
+                    },
                 ],
             ),
             (
@@ -397,9 +477,11 @@ mod tests {
                     _._._._.
                     ._._._._
                 ",
-                vec![
-                    Move{src: Pos::new(0, 7), dir: Dir::BackwardLeft, jump: false, },
-                ],
+                vec![Move {
+                    src: Pos::new(0, 7),
+                    dir: Dir::BackwardLeft,
+                    jump: false,
+                }],
             ),
             (
                 "enumerate jump over a enemy",
@@ -415,9 +497,11 @@ mod tests {
                     _._._._.
                     ._._._._
                 ",
-                vec![
-                    Move{src: Pos::new(2, 3), dir: Dir::ForwardRight, jump: true, },
-                ],
+                vec![Move {
+                    src: Pos::new(2, 3),
+                    dir: Dir::ForwardRight,
+                    jump: true,
+                }],
             ),
             (
                 "enumerate jump over many enemies",
@@ -434,10 +518,26 @@ mod tests {
                     ._._._._
                 ",
                 vec![
-                    Move{src: Pos::new(2, 3), dir: Dir::ForwardRight, jump: true, },
-                    Move{src: Pos::new(2, 3), dir: Dir::ForwardLeft, jump: true, },
-                    Move{src: Pos::new(2, 3), dir: Dir::BackwardLeft, jump: true, },
-                    Move{src: Pos::new(2, 3), dir: Dir::BackwardRight, jump: true, },
+                    Move {
+                        src: Pos::new(2, 3),
+                        dir: Dir::ForwardRight,
+                        jump: true,
+                    },
+                    Move {
+                        src: Pos::new(2, 3),
+                        dir: Dir::ForwardLeft,
+                        jump: true,
+                    },
+                    Move {
+                        src: Pos::new(2, 3),
+                        dir: Dir::BackwardLeft,
+                        jump: true,
+                    },
+                    Move {
+                        src: Pos::new(2, 3),
+                        dir: Dir::BackwardRight,
+                        jump: true,
+                    },
                 ],
             ),
             (
@@ -455,8 +555,16 @@ mod tests {
                     ._._._._
                 ",
                 vec![
-                    Move{src: Pos::new(0, 4), dir: Dir::ForwardLeft, jump: false, },
-                    Move{src: Pos::new(0, 4), dir: Dir::BackwardLeft, jump: false, },
+                    Move {
+                        src: Pos::new(0, 4),
+                        dir: Dir::ForwardLeft,
+                        jump: false,
+                    },
+                    Move {
+                        src: Pos::new(0, 4),
+                        dir: Dir::BackwardLeft,
+                        jump: false,
+                    },
                 ],
             ),
             (
@@ -474,12 +582,36 @@ mod tests {
                     ._._._._
                 ",
                 vec![
-                    Move{src: Pos::new(1, 2), dir: Dir::ForwardRight, jump: false, },
-                    Move{src: Pos::new(1, 2), dir: Dir::ForwardLeft, jump: false, },
-                    Move{src: Pos::new(1, 2), dir: Dir::BackwardLeft, jump: false, },
-                    Move{src: Pos::new(1, 2), dir: Dir::BackwardRight, jump: false, },
-                    Move{src: Pos::new(2, 4), dir: Dir::ForwardRight, jump: false, },
-                    Move{src: Pos::new(2, 4), dir: Dir::ForwardLeft, jump: false, },
+                    Move {
+                        src: Pos::new(1, 2),
+                        dir: Dir::ForwardRight,
+                        jump: false,
+                    },
+                    Move {
+                        src: Pos::new(1, 2),
+                        dir: Dir::ForwardLeft,
+                        jump: false,
+                    },
+                    Move {
+                        src: Pos::new(1, 2),
+                        dir: Dir::BackwardLeft,
+                        jump: false,
+                    },
+                    Move {
+                        src: Pos::new(1, 2),
+                        dir: Dir::BackwardRight,
+                        jump: false,
+                    },
+                    Move {
+                        src: Pos::new(2, 4),
+                        dir: Dir::ForwardRight,
+                        jump: false,
+                    },
+                    Move {
+                        src: Pos::new(2, 4),
+                        dir: Dir::ForwardLeft,
+                        jump: false,
+                    },
                 ],
             ),
             (
@@ -497,9 +629,21 @@ mod tests {
                     ._._._._
                 ",
                 vec![
-                    Move{src: Pos::new(2, 3), dir: Dir::ForwardRight, jump: false, },
-                    Move{src: Pos::new(2, 4), dir: Dir::ForwardRight, jump: false, },
-                    Move{src: Pos::new(2, 4), dir: Dir::ForwardLeft, jump: false, },
+                    Move {
+                        src: Pos::new(2, 3),
+                        dir: Dir::ForwardRight,
+                        jump: false,
+                    },
+                    Move {
+                        src: Pos::new(2, 4),
+                        dir: Dir::ForwardRight,
+                        jump: false,
+                    },
+                    Move {
+                        src: Pos::new(2, 4),
+                        dir: Dir::ForwardLeft,
+                        jump: false,
+                    },
                 ],
             ),
             (
@@ -532,10 +676,12 @@ mod tests {
                     _._._._.
                     ._._._._
                 ",
-                vec![
-                    Move{src: Pos::new(3, 3), dir: Dir::BackwardRight, jump: true, },
-                ],
-            )
+                vec![Move {
+                    src: Pos::new(3, 3),
+                    dir: Dir::BackwardRight,
+                    jump: true,
+                }],
+            ),
         ];
 
         for (msg, player, jumping, game, mut expects) in cases {
@@ -544,7 +690,12 @@ mod tests {
             let mut actuals: Vec<Move> = game.moves().collect();
             expects.sort();
             actuals.sort();
-            assert_eq!(expects.len(), actuals.len(), "{}: count of moves are different", msg);
+            assert_eq!(
+                expects.len(),
+                actuals.len(),
+                "{}: count of moves are different",
+                msg
+            );
             for (expect, actual) in expects.iter().zip(actuals.iter()) {
                 assert_eq!(expect, actual, "{}", msg);
             }
@@ -556,7 +707,11 @@ mod tests {
         let cases = [
             (
                 "Apply ForwardRight move",
-                Move{src: Pos::new(2, 1), dir: Dir::ForwardRight, jump: false},
+                Move {
+                    src: Pos::new(2, 1),
+                    dir: Dir::ForwardRight,
+                    jump: false,
+                },
                 Player::BLK,
                 None,
                 r"
@@ -584,7 +739,11 @@ mod tests {
             ),
             (
                 "Apply ForwardRight jump move and continue play for black",
-                Move{src: Pos::new(2, 1), dir: Dir::ForwardRight, jump: true, },
+                Move {
+                    src: Pos::new(2, 1),
+                    dir: Dir::ForwardRight,
+                    jump: true,
+                },
                 Player::BLK,
                 None,
                 r"
@@ -612,7 +771,11 @@ mod tests {
             ),
             (
                 "Apply BackwardRight jump move",
-                Move{src: Pos::new(2, 1), dir: Dir::BackwardRight, jump: false, },
+                Move {
+                    src: Pos::new(2, 1),
+                    dir: Dir::BackwardRight,
+                    jump: false,
+                },
                 Player::BLK,
                 None,
                 r"
@@ -640,7 +803,11 @@ mod tests {
             ),
             (
                 "Apply ForwardRight move for king for black",
-                Move{src: Pos::new(2, 1), dir: Dir::ForwardRight, jump: false, },
+                Move {
+                    src: Pos::new(2, 1),
+                    dir: Dir::ForwardRight,
+                    jump: false,
+                },
                 Player::BLK,
                 None,
                 r"
@@ -668,7 +835,11 @@ mod tests {
             ),
             (
                 "Apply ForwardRight move for king for red",
-                Move{src: Pos::new(2, 1), dir: Dir::BackwardRight, jump: false, },
+                Move {
+                    src: Pos::new(2, 1),
+                    dir: Dir::BackwardRight,
+                    jump: false,
+                },
                 Player::RED,
                 None,
                 r"
@@ -696,7 +867,11 @@ mod tests {
             ),
             (
                 "Apply ForwardRight move for king",
-                Move{src: Pos::new(2, 1), dir: Dir::ForwardRight, jump: false, },
+                Move {
+                    src: Pos::new(2, 1),
+                    dir: Dir::ForwardRight,
+                    jump: false,
+                },
                 Player::RED,
                 None,
                 r"
@@ -724,7 +899,11 @@ mod tests {
             ),
             (
                 "Apply ForwardRight jump move and continue play for red",
-                Move{src: Pos::new(2, 1), dir: Dir::ForwardRight, jump: true, },
+                Move {
+                    src: Pos::new(2, 1),
+                    dir: Dir::ForwardRight,
+                    jump: true,
+                },
                 Player::RED,
                 None,
                 r"
@@ -752,7 +931,11 @@ mod tests {
             ),
             (
                 "Apply ForwardRight jump move without next jumpable move",
-                Move{src: Pos::new(2, 1), dir: Dir::ForwardRight, jump: true, },
+                Move {
+                    src: Pos::new(2, 1),
+                    dir: Dir::ForwardRight,
+                    jump: true,
+                },
                 Player::RED,
                 None,
                 r"
@@ -782,7 +965,11 @@ mod tests {
                 // A test for specific bug, refer:
                 // https://clips.twitch.tv/IcyBovineFiddleheadsPanicVis-ab4FWbTA4kBNRZOm
                 "Change turn when move forward left for corner",
-                Move{src: Pos::new(2, 1), dir: Dir::ForwardLeft, jump: false, },
+                Move {
+                    src: Pos::new(2, 1),
+                    dir: Dir::ForwardLeft,
+                    jump: false,
+                },
                 Player::BLK,
                 None,
                 r"
@@ -810,7 +997,11 @@ mod tests {
             ),
             (
                 "BLK pone's promotion",
-                Move{src: Pos::new(2, 6), dir: Dir::ForwardLeft, jump: false, },
+                Move {
+                    src: Pos::new(2, 6),
+                    dir: Dir::ForwardLeft,
+                    jump: false,
+                },
                 Player::BLK,
                 None,
                 r"
@@ -838,7 +1029,11 @@ mod tests {
             ),
             (
                 "RED pone's promotion",
-                Move{src: Pos::new(2, 1), dir: Dir::BackwardRight, jump: false, },
+                Move {
+                    src: Pos::new(2, 1),
+                    dir: Dir::BackwardRight,
+                    jump: false,
+                },
                 Player::RED,
                 None,
                 r"
@@ -866,12 +1061,9 @@ mod tests {
             ),
         ];
 
-        for (
-                msg,
-                m,
-                before_player, before_jumping, before,
-                after_player, after_jumping, after,
-        ) in cases {
+        for (msg, m, before_player, before_jumping, before, after_player, after_jumping, after) in
+            cases
+        {
             let before = testutil::game(before_player, before_jumping, before);
             let expected = testutil::game(after_player, after_jumping, after);
             let actual = before.apply(&m);
@@ -880,5 +1072,61 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_checkmate() {
+        let cases = [
+            (
+                "Game is cotninue normally",
+                Player::RED,
+                r"
+                    _._._._.
+                    ._b_._._
+                    _._._._.
+                    ._._R_._
+                    _r_._._.
+                    ._b_._._
+                    _._._r_.
+                    ._._._._
+                ",
+                None,
+            ),
+            (
+                "Game only have black pieces",
+                Player::BLK,
+                r"
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._B_._
+                    _b_._._.
+                    ._._._._
+                    _._._b_.
+                    ._._._._
+                ",
+                Some(Player::BLK),
+            ),
+            (
+                "Game only have red pieces",
+                Player::RED,
+                r"
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._R_._
+                    _r_._._.
+                    ._._._._
+                    _._._r_.
+                    ._._._._
+                ",
+                Some(Player::RED),
+            ),
+        ];
 
+        for (msg, player, game, expected) in cases {
+            let game = testutil::game(player, None, game);
+            let actual = game.winner();
+
+            assert_eq!(expected, actual, "{}", msg);
+        }
+    }
 }

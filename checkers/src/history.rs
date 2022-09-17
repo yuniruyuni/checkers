@@ -26,8 +26,10 @@ impl History {
     }
 
     pub fn pop(&mut self) -> Option<Game> {
-        self.seq.pop()
-            .and_then(|g| { self.set.remove(&g); Some(g) })
+        self.seq.pop().and_then(|g| {
+            self.set.remove(&g);
+            Some(g)
+        })
     }
 
     pub fn contains(&self, g: &Game) -> bool {
@@ -35,18 +37,17 @@ impl History {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pretty_assertions::assert_eq;
     use crate::board::Board;
     use crate::game::Game;
     use crate::player::Player;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn push_pop_identity() {
-        let g = Game{
+        let g = Game {
             side: Player::BLK,
             jumping: None,
             red: Board::new(0b0000_0001_0000_0000_0001_0010_0000_0100),
@@ -64,14 +65,14 @@ mod tests {
 
     #[test]
     fn pushed_contains_identity() {
-        let g1 = Game{
+        let g1 = Game {
             side: Player::BLK,
             jumping: None,
             red: Board::new(0b0000_0001_0000_0000_0001_0010_0000_0100),
             blk: Board::new(0b0100_0000_0000_0010_0000_0000_0000_0010),
             king: Board::new(0b0000_0001_0000_0000_0001_0000_0100_0000),
         };
-        let g2 = Game{
+        let g2 = Game {
             side: Player::BLK,
             jumping: None,
             red: Board::new(0b0100_0000_0000_0010_0000_0000_0000_0010),

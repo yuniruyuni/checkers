@@ -1,6 +1,6 @@
 // use checkers::{Pos, Board, Player};
 
-use egui::{Ui, Color32, vec2, Sense, Shape, pos2, Pos2, Response};
+use egui::{pos2, vec2, Color32, Pos2, Response, Sense, Shape, Ui};
 
 #[derive(Debug, Clone, Copy, Default)]
 pub enum CellKind {
@@ -55,13 +55,16 @@ const CELL_SIZE: f32 = 32.0;
 
 impl Cell {
     pub fn new(kind: CellKind, king: bool, selected: bool, selectable: bool) -> Cell {
-        Self{kind, king, selected, selectable}
+        Self {
+            kind,
+            king,
+            selected,
+            selectable,
+        }
     }
 
     pub fn render(&self, ui: &mut Ui) -> Response {
-        let (resp, painter) = ui.allocate_painter(
-            vec2(CELL_SIZE, CELL_SIZE), Sense::click(),
-        );
+        let (resp, painter) = ui.allocate_painter(vec2(CELL_SIZE, CELL_SIZE), Sense::click());
 
         let stroke = (1.0, Color32::BLACK);
 
@@ -101,7 +104,7 @@ fn star(c: Pos2, ir: f32, er: f32) -> impl Iterator<Item = Pos2> {
     let frac_n = 1.0 / (n as f32);
     let offset = std::f32::consts::TAU / 4.0;
 
-    (0..n).map(move |i|{
+    (0..n).map(move |i| {
         let r = if i % 2 == 0 { ir } else { er };
         let rad = std::f32::consts::TAU * frac_n * (i as f32) + offset;
 

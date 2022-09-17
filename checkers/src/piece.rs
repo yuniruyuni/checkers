@@ -1,10 +1,6 @@
 use derive_more::Not;
 
-#[derive(
-    Debug,
-    PartialEq, Eq,
-    Not,
-)]
+#[derive(Debug, PartialEq, Eq, Not)]
 pub struct Piece(bool);
 
 pub const PONE: Piece = Piece(false);
