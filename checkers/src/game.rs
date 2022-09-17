@@ -38,6 +38,8 @@ impl Game {
             .filter(move |m| cloned.valid(m))
     }
 
+    const PROMOTION_MASK: Board = Board::new(0b1111_0000_0000_0000_0000_0000_0000_1111);
+
     pub fn apply(&self, m: &Move) -> Game {
         let mut g = self.clone();
         let king = &mut g.king;
@@ -53,8 +55,10 @@ impl Game {
         *king &= src_mask;
 
         let dst_mask = m.dst().board();
+        let is_promotion= (dst_mask & Self::PROMOTION_MASK) != Board::empty();
+
         *slf |= dst_mask;
-        if is_king {
+        if is_king || is_promotion {
             *king |= dst_mask;
         }
 
@@ -631,7 +635,7 @@ mod tests {
                     _._._._.
                     ._._._._
                     _._._._.
-                    ._._b_._
+                    ._._B_._
                 ",
             ),
             (
@@ -802,6 +806,62 @@ mod tests {
                     ._b_._._
                     _._._._.
                     ._._._._
+                ",
+            ),
+            (
+                "BLK pone's promotion",
+                Move{src: Pos::new(2, 6), dir: Dir::ForwardLeft, jump: false, },
+                Player::BLK,
+                None,
+                r"
+                    _._._._.
+                    ._b_._._
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._r_._._
+                    _._._._.
+                    ._._._._
+                ",
+                Player::RED,
+                None,
+                r"
+                    _B_._._.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._r_._._
+                    _._._._.
+                    ._._._._
+                ",
+            ),
+            (
+                "RED pone's promotion",
+                Move{src: Pos::new(2, 1), dir: Dir::BackwardRight, jump: false, },
+                Player::RED,
+                None,
+                r"
+                    _._._._.
+                    ._._._._
+                    _b_._._.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                    _._r_._.
+                    ._._._._
+                ",
+                Player::BLK,
+                None,
+                r"
+                    _._._._.
+                    ._._._._
+                    _b_._._.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._R_._
                 ",
             ),
         ];
