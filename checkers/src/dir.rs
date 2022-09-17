@@ -44,7 +44,7 @@ impl Dir {
             (Self::BackwardLeft, true) => (1, -1),
             (Self::BackwardLeft, false) => (0, -1),
             (Self::BackwardRight, true) => (0, -1),
-            (Self::BackwardRight, false) => (1, -1),
+            (Self::BackwardRight, false) => (-1, -1),
         };
 
         let mx = target.x() as i8 + diff.0;

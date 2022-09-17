@@ -514,6 +514,24 @@ mod tests {
                 ",
                 vec![],
             ),
+            (
+                "Red can jump black",
+                Player::RED,
+                None,
+                r"
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                    _r_._._.
+                    ._b_._._
+                    _._._._.
+                    ._._._._
+                ",
+                vec![
+                    Move{src: Pos::new(3, 3), dir: Dir::BackwardRight, jump: true, },
+                ],
+            )
         ];
 
         for (msg, player, jumping, game, mut expects) in cases {
@@ -752,6 +770,36 @@ mod tests {
                     ._._._._
                     _._._R_.
                     ._._._._
+                    _._._._.
+                    ._._._._
+                ",
+            ),
+            (
+                // A test for specific bug, refer:
+                // https://clips.twitch.tv/IcyBovineFiddleheadsPanicVis-ab4FWbTA4kBNRZOm
+                "Change turn when move forward left for corner",
+                Move{src: Pos::new(2, 1), dir: Dir::ForwardLeft, jump: false, },
+                Player::BLK,
+                None,
+                r"
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                    _r_._._.
+                    ._._._._
+                    _._b_._.
+                    ._._._._
+                ",
+                Player::RED,
+                None,
+                r"
+                    _._._._.
+                    ._._._._
+                    _._._._.
+                    ._._._._
+                    _r_._._.
+                    ._b_._._
                     _._._._.
                     ._._._._
                 ",
