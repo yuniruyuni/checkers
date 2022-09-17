@@ -52,7 +52,7 @@ impl Checkers {
         cell.render(ui);
     }
 
-    fn render_cell(&mut self, ui: &mut Ui, pos: Pos, moves: &Vec<Move>) {
+    fn render_cell(&mut self, ui: &mut Ui, pos: Pos, moves: &[Move]) {
         let kind = match (pos.is(self.game.blk), pos.is(self.game.red)) {
             (true, false) => CellKind::Blk,
             (false, true) => CellKind::Red,
@@ -63,11 +63,10 @@ impl Checkers {
             Mode::SelectingDestCell { src } => src == pos,
         };
         let selectable = match self.mode {
-            Mode::SelectingMovePiece => moves.iter().find(|m| m.src == pos).is_some(),
+            Mode::SelectingMovePiece => moves.iter().any(|m| m.src == pos),
             Mode::SelectingDestCell { src } => moves
                 .iter()
-                .find(|m| m.src == src && m.dst() == pos)
-                .is_some(),
+                .any(|m| m.src == src && m.dst() == pos),
         };
         let cell = Cell::new(kind, pos.is(self.game.king), selected, selectable);
 
@@ -98,10 +97,10 @@ impl Checkers {
             let moves: Vec<Move> = self.game.moves().collect();
             for y in 0..Self::ROWS {
                 ui.columns(Self::COLUMNS, |columns| {
-                    for x in 0..Self::COLUMNS {
+                    for (x, column) in columns.iter_mut().enumerate() {
                         match Pos::graphical(x as u8, y as u8) {
-                            Some(pos) => self.render_cell(&mut columns[x], pos, &moves),
-                            None => self.render_empty_cell(&mut columns[x]),
+                            Some(pos) => self.render_cell(column, pos, &moves),
+                            None => self.render_empty_cell(column),
                         }
                     }
                 });
@@ -112,7 +111,7 @@ impl Checkers {
                 Some(Player::RED) => (egui::Color32::RED, "RED WIN"),
                 None => (egui::Color32::default(), ""),
             };
-            let rect = ui.clip_rect().clone();
+            let rect = ui.clip_rect();
             ui.allocate_ui_at_rect(rect, |ui| {
                 ui.centered_and_justified(|ui| {
                     let label = egui::RichText::new(text)

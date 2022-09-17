@@ -67,7 +67,7 @@ impl Game {
             g.jumping = None;
         }
 
-        if g.moves().collect::<Vec<Move>>().len() == 0 {
+        if g.moves().next().is_none() {
             g.side = !g.side;
             g.jumping = None;
         }
@@ -107,8 +107,7 @@ impl Game {
             has_op && has_gap
         } else {
             let first = m.dir.apply(board);
-            let has_gap = (first & gap) != Board::empty();
-            has_gap
+            (first & gap) != Board::empty()
         };
 
         dir_ok && gap_ok

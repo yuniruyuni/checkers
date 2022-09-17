@@ -50,7 +50,7 @@ impl Dir {
         let mx = target.x() as i8 + diff.0;
         let my = target.y() as i8 + diff.1;
 
-        (0 <= mx && mx < 4) && (0 <= my && my < 8)
+        (0..4).contains(&mx) && (0..8).contains(&my)
     }
 
     #[inline(always)]

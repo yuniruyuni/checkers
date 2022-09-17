@@ -3,19 +3,13 @@ use std::collections::HashSet;
 use crate::game::Game;
 
 /// History is a sequence of game states.
+#[derive(Default)]
 pub struct History {
     seq: Vec<Game>,
     set: HashSet<Game>,
 }
 
 impl History {
-    pub fn new() -> Self {
-        Self {
-            seq: vec![],
-            set: HashSet::new(),
-        }
-    }
-
     pub fn push(&mut self, g: Game) {
         self.seq.push(g.clone());
         self.set.insert(g);
@@ -26,10 +20,7 @@ impl History {
     }
 
     pub fn pop(&mut self) -> Option<Game> {
-        self.seq.pop().and_then(|g| {
-            self.set.remove(&g);
-            Some(g)
-        })
+        self.seq.pop().map(|g| { self.set.remove(&g); g })
     }
 
     pub fn contains(&self, g: &Game) -> bool {
@@ -56,7 +47,7 @@ mod tests {
         };
         let expected = Some(g.clone());
 
-        let mut h = History::new();
+        let mut h = History::default();
         h.push(g);
         let actual = h.pop();
 
@@ -80,7 +71,7 @@ mod tests {
             king: Board::new(0b0000_0001_0000_0000_0001_0000_0100_0000),
         };
 
-        let mut h = History::new();
+        let mut h = History::default();
         h.push(g1.clone());
         h.push(g2.clone());
 
