@@ -57,22 +57,21 @@ impl Checkers {
         let cell = Cell::new(kind, pos.is(self.game.king), selected, selectable);
 
         let resp = cell.render(ui);
-        if resp.clicked() {
-            match self.mode {
-                Mode::SelectingMovePiece => {
-                    self.mode = Mode::SelectingDestCell { src: pos };
-                },
-                Mode::SelectingDestCell{ src } => {
-                    // TODO: find suitable move for this moving.
-                    match moves.iter().find(|m| m.src == src && m.dst() == pos) {
-                        Some(m) => {
-                            self.game = self.game.apply(m);
-                        },
-                        None => (),
-                    }
-                    self.mode = Mode::SelectingMovePiece;
-                },
-            }
+        match (self.mode, resp.clicked(), selectable) {
+            (Mode::SelectingMovePiece, true, true) => {
+                self.mode = Mode::SelectingDestCell { src: pos };
+            },
+            (Mode::SelectingDestCell{ src }, true, true) => {
+                // TODO: find suitable move for this moving.
+                match moves.iter().find(|m| m.src == src && m.dst() == pos) {
+                    Some(m) => {
+                        self.game = self.game.apply(m);
+                    },
+                    None => (),
+                }
+                self.mode = Mode::SelectingMovePiece;
+            },
+            (_, _, _) => (),
         }
     }
 
