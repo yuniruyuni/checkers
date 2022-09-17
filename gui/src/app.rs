@@ -47,8 +47,7 @@ impl Checkers {
         };
         let selected = match self.mode {
             Mode::SelectingMovePiece => false,
-            Mode::SelectingDestCell{ src } =>
-                moves.iter().find(|m| m.src == src).is_some(),
+            Mode::SelectingDestCell{ src } => src == pos,
         };
         let selectable = match self.mode {
             Mode::SelectingMovePiece => moves.iter().find(|m| m.src == pos).is_some(),
