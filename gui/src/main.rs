@@ -1,7 +1,7 @@
 mod app;
 mod cell;
 
-use eframe::{run_native, Theme};
+use eframe::run_native;
 use egui::Vec2;
 
 use crate::app::Checkers;
@@ -9,17 +9,20 @@ use crate::app::Checkers;
 const WINDOW_WIDTH: f32 = 480.0;
 const WINDOW_HEIGHT: f32 = 300.0;
 
-fn main() {
+fn main() -> eframe::Result {
     let options = eframe::NativeOptions {
-        resizable: false,
-        initial_window_size: Some(Vec2::new(WINDOW_WIDTH, WINDOW_HEIGHT)),
-        default_theme: Theme::Light,
+        viewport: egui::ViewportBuilder::default()
+            .with_resizable(false)
+            .with_inner_size(Vec2::new(WINDOW_WIDTH, WINDOW_HEIGHT)),
         ..Default::default()
     };
 
     run_native(
         "checkers",
         options,
-        Box::new(|cc| Box::new(Checkers::new(&cc.egui_ctx))),
-    );
+        Box::new(|cc| {
+            cc.egui_ctx.set_theme(egui::Theme::Light);
+            Ok(Box::new(Checkers::new(&cc.egui_ctx)))
+        }),
+    )
 }

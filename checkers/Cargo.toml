@@ -7,9 +7,9 @@ edition = "2021"
 derive_more = "*"
 
 [dev-dependencies]
-pretty_assertions = "*"
+pretty_assertions = "1.4.1"
 unindent = "*"
-criterion = "*"
+criterion = "0.5.1"
 
 [[bench]]
 name = "moves"
