@@ -1,6 +1,6 @@
 // use checkers::{Pos, Board, Player};
 
-use egui::{pos2, vec2, Color32, Pos2, Response, Sense, Shape, Ui};
+use egui::{pos2, vec2, Color32, Pos2, Response, Sense, Shape, StrokeKind, Ui};
 
 #[derive(Debug, Clone, Copy, Default)]
 pub enum CellKind {
@@ -73,7 +73,7 @@ impl Cell {
             (_, _, true) => self.kind.selected(),
             (_, _, _) => Color32::default(),
         };
-        painter.rect(resp.rect, 0.0, background, stroke);
+        painter.rect(resp.rect, 0.0, background, stroke, StrokeKind::Middle);
 
         painter.circle(
             resp.rect.center(),

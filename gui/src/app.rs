@@ -1,5 +1,5 @@
 use eframe::{App, Frame};
-use egui::{CentralPanel, Context, Ui};
+use egui::{CentralPanel, Ui};
 
 use checkers::{Board, Game, Move, Player, Pos};
 
@@ -28,12 +28,12 @@ impl Checkers {
     }
 
     pub fn new(cc: &egui::Context) -> Checkers {
-        let mut style = (*cc.style()).clone();
-        style.text_styles.insert(
-            Self::win_text_style(),
-            egui::FontId::new(80.0, egui::FontFamily::Proportional),
-        );
-        cc.set_style(style);
+        cc.all_styles_mut(|style| {
+            style.text_styles.insert(
+                Self::win_text_style(),
+                egui::FontId::new(80.0, egui::FontFamily::Proportional),
+            );
+        });
 
         Self {
             mode: Mode::SelectingMovePiece,
@@ -87,8 +87,8 @@ impl Checkers {
         }
     }
 
-    fn render(&mut self, ctx: &Context) {
-        CentralPanel::default().show(ctx, |ui| {
+    fn render(&mut self, ui: &mut Ui) {
+        CentralPanel::default().show(ui, |ui| {
             if ui.input(|input| input.pointer.secondary_clicked()) {
                 self.mode = Mode::SelectingMovePiece;
             }
@@ -110,7 +110,7 @@ impl Checkers {
                 None => (egui::Color32::default(), ""),
             };
             let rect = ui.clip_rect();
-            ui.allocate_new_ui(egui::UiBuilder::new().max_rect(rect), |ui| {
+            ui.scope_builder(egui::UiBuilder::new().max_rect(rect), |ui| {
                 ui.centered_and_justified(|ui| {
                     let label = egui::RichText::new(text)
                         .text_style(Self::win_text_style())
@@ -125,6 +125,14 @@ impl Checkers {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use egui::{Context, FullOutput, RawInput};
+
+    /// 1 フレーム分の UI を実行し、テストでは使わないテクスチャ差分を破棄する。
+    fn run_frame(ctx: &Context, input: RawInput, run_ui: impl FnMut(&mut Ui)) -> FullOutput {
+        let mut output = ctx.run_ui(input, run_ui);
+        output.textures_delta.clear();
+        output
+    }
 
     fn cell_frame(ctx: &Context, app: &mut Checkers, pos: Pos, pressed: bool) {
         let pointer = egui::pos2(24.0, 24.0);
@@ -141,8 +149,8 @@ mod tests {
             ..Default::default()
         };
         let moves: Vec<_> = app.game.moves().collect();
-        let _ = ctx.run(input, |ctx| {
-            CentralPanel::default().show(ctx, |ui| app.render_cell(ui, pos, &moves));
+        let _ = run_frame(ctx, input, |ui| {
+            CentralPanel::default().show(ui, |ui| app.render_cell(ui, pos, &moves));
         });
     }
 
@@ -153,8 +161,8 @@ mod tests {
         let m = app.game.moves().next().expect("initial position has moves");
         let expected = app.game.apply(&m);
         let moves: Vec<_> = app.game.moves().collect();
-        let _ = ctx.run(egui::RawInput::default(), |ctx| {
-            CentralPanel::default().show(ctx, |ui| app.render_cell(ui, m.src, &moves));
+        let _ = run_frame(&ctx, egui::RawInput::default(), |ui| {
+            CentralPanel::default().show(ui, |ui| app.render_cell(ui, m.src, &moves));
         });
         cell_frame(&ctx, &mut app, m.src, true);
         cell_frame(&ctx, &mut app, m.src, false);
@@ -172,7 +180,7 @@ mod tests {
         let before = app.game.clone();
         let src = app.game.moves().next().unwrap().src;
         app.mode = Mode::SelectingDestCell { src };
-        let output = ctx.run(egui::RawInput::default(), |ctx| app.render(ctx));
+        let output = run_frame(&ctx, egui::RawInput::default(), |ui| app.render(ui));
         assert!(!output.shapes.is_empty());
         for pressed in [true, false] {
             let input = egui::RawInput {
@@ -184,7 +192,7 @@ mod tests {
                 }],
                 ..Default::default()
             };
-            let _ = ctx.run(input, |ctx| app.render(ctx));
+            let _ = run_frame(&ctx, input, |ui| app.render(ui));
         }
         assert_eq!(app.game, before);
         assert!(matches!(app.mode, Mode::SelectingMovePiece));
@@ -192,7 +200,7 @@ mod tests {
 }
 
 impl App for Checkers {
-    fn update(&mut self, ctx: &Context, _frame: &mut Frame) {
-        self.render(ctx)
+    fn ui(&mut self, ui: &mut Ui, _frame: &mut Frame) {
+        self.render(ui)
     }
 }
