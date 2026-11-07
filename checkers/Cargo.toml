@@ -4,12 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-derive_more = "*"
+derive_more = { version = "2", features = ["add", "add_assign", "mul", "mul_assign", "not"] }
 
 [dev-dependencies]
 pretty_assertions = "1.4.1"
 unindent = "*"
-criterion = "0.5.1"
+criterion = "0.8.0"
 
 [[bench]]
 name = "moves"
